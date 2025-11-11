@@ -1,4 +1,4 @@
-name: Practicing workflow
+name: Practicing workflow for pushing Docker image to Dockerhub
 
 on: [push]
 
@@ -6,27 +6,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9", "3.10"]
-
-
-
     steps:
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: login into Dockerhub
+        env:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: run tests
-        run: |
-          cd app
-          python -m unittest discover
+        run: docker login -u "$username" -p "$password"
 
-      - name: notify us of success
-        run: echo "Tests passed on python ${{ matrix.python-version }}"
-        if: success()
+      - name: build Docker image
+        run: docker build -t $username/hello-docker:latest .
+
+      - name: push Docker image
+        run: docker push $username/hello-docker:latest
+
+
+      
+
 
